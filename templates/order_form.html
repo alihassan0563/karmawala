@@ -1,0 +1,228 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{% if object %}Edit Order{% else %}Create Order{% endif %} - KarmaWala{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-6">
+    <!-- Header -->
+    <div class="flex items-center space-x-4 mb-6">
+        <a href="{% url 'order-list' %}" class="text-gray-500 hover:text-gray-700">
+            <i class="fas fa-arrow-left text-xl"></i>
+        </a>
+        <h1 class="text-3xl font-bold text-gray-800">
+            {% if object %}Edit Order #{{ object.order_number }}{% else %}Create New Order{% endif %}
+        </h1>
+    </div>
+
+    <form method="post" class="space-y-6">
+        {% csrf_token %}
+        
+        <!-- Customer Information -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">Customer Information</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="{{ form.customer_name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Customer Name *
+                    </label>
+                    {{ form.customer_name }}
+                    {% if form.customer_name.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.customer_name.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    <label for="{{ form.customer_phone.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Phone Number *
+                    </label>
+                    {{ form.customer_phone }}
+                    {% if form.customer_phone.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.customer_phone.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    <label for="{{ form.customer_email.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Email Address
+                    </label>
+                    {{ form.customer_email }}
+                    {% if form.customer_email.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.customer_email.errors.0 }}</p>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    <label for="{{ form.status.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Order Status
+                    </label>
+                    {{ form.status }}
+                    {% if form.status.errors %}
+                        <p class="mt-1 text-sm text-red-600">{{ form.status.errors.0 }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="mt-6">
+                <label for="{{ form.customer_address.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                    Delivery Address *
+                </label>
+                {{ form.customer_address }}
+                {% if form.customer_address.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.customer_address.errors.0 }}</p>
+                {% endif %}
+            </div>
+            
+            <div class="mt-6">
+                <label for="{{ form.notes.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                    Internal Notes
+                </label>
+                {{ form.notes }}
+                {% if form.notes.errors %}
+                    <p class="mt-1 text-sm text-red-600">{{ form.notes.errors.0 }}</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Order Items -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold text-gray-900">Order Items</h2>
+                <button type="button" id="add-item" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition duration-200">
+                    <i class="fas fa-plus mr-2"></i>Add Item
+                </button>
+            </div>
+            
+            {{ formset.management_form }}
+            
+            <div id="order-items" class="space-y-4">
+                {% for form in formset %}
+                    <div class="order-item-form border border-gray-200 rounded-lg p-4">
+                        {% if form.non_field_errors %}
+                            <div class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                                {% for error in form.non_field_errors %}
+                                    <p class="text-sm text-red-600">{{ error }}</p>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Product *</label>
+                                {{ form.product }}
+                                {% if form.product.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ form.product.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Quantity *</label>
+                                {{ form.quantity }}
+                                {% if form.quantity.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ form.quantity.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                            
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Unit Price *</label>
+                                {{ form.unit_price }}
+                                {% if form.unit_price.errors %}
+                                    <p class="mt-1 text-sm text-red-600">{{ form.unit_price.errors.0 }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        {% if form.DELETE %}
+                            <div class="mt-4 flex items-center">
+                                {{ form.DELETE }}
+                                <label for="{{ form.DELETE.id_for_label }}" class="ml-2 text-sm text-red-600">
+                                    Delete this item
+                                </label>
+                            </div>
+                        {% endif %}
+                        
+                        {% for hidden in form.hidden_fields %}
+                            {{ hidden }}
+                        {% endfor %}
+                    </div>
+                {% endfor %}
+            </div>
+            
+            {% if formset.non_form_errors %}
+                <div class="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                    {% for error in formset.non_form_errors %}
+                        <p class="text-sm text-red-600">{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="flex justify-end space-x-4">
+            <a href="{% url 'order-list' %}" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg transition duration-200">
+                <i class="fas fa-times mr-2"></i>Cancel
+            </a>
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition duration-200">
+                <i class="fas fa-save mr-2"></i>
+                {% if object %}Update Order{% else %}Create Order{% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const addButton = document.getElementById('add-item');
+    const orderItemsContainer = document.getElementById('order-items');
+    const totalFormsInput = document.getElementById('id_orderitem_set-TOTAL_FORMS');
+    
+    let formCount = parseInt(totalFormsInput.value);
+    
+    addButton.addEventListener('click', function() {
+        // Clone the last form
+        const lastForm = orderItemsContainer.lastElementChild;
+        const newForm = lastForm.cloneNode(true);
+        
+        // Update form index
+        const formRegex = RegExp(`orderitem_set-(\\d+)-`, 'g');
+        newForm.innerHTML = newForm.innerHTML.replace(formRegex, `orderitem_set-${formCount}-`);
+        
+        // Clear values
+        const inputs = newForm.querySelectorAll('input, select');
+        inputs.forEach(input => {
+            if (input.type !== 'hidden') {
+                input.value = '';
+            }
+        });
+        
+        // Add to container
+        orderItemsContainer.appendChild(newForm);
+        
+        // Update form count
+        formCount++;
+        totalFormsInput.value = formCount;
+    });
+    
+    // Auto-populate unit price when product is selected
+    orderItemsContainer.addEventListener('change', function(e) {
+        if (e.target.name && e.target.name.includes('product')) {
+            const productSelect = e.target;
+            const formDiv = productSelect.closest('.order-item-form');
+            const unitPriceInput = formDiv.querySelector('input[name*="unit_price"]');
+            
+            if (productSelect.value && unitPriceInput) {
+                // Get product price via AJAX or from data attributes
+                fetch(`/api/products/${productSelect.value}/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        unitPriceInput.value = data.price;
+                    })
+                    .catch(error => {
+                        console.log('Could not fetch product price');
+                    });
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,231 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Dashboard - KarmaWala{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <h2 class="text-3xl font-bold text-gray-800 mb-2">Inventory Dashboard</h2>
+    <p class="text-gray-600">Overview of your inventory management system</p>
+</div>
+
+<!-- Key Metrics Cards -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <!-- Total Products -->
+    <div class="bg-white rounded-lg shadow-md p-6 card-hover transition-all duration-300">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-gray-600">Total Products</p>
+                <p class="text-3xl font-bold text-blue-600">{{ total_products|floatformat:0 }}</p>
+            </div>
+            <div class="bg-blue-100 p-3 rounded-full">
+                <i class="fas fa-box text-blue-600 text-xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Stock -->
+    <div class="bg-white rounded-lg shadow-md p-6 card-hover transition-all duration-300">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-gray-600">Total Stock</p>
+                <p class="text-3xl font-bold text-green-600">{{ total_stock|floatformat:0 }}</p>
+            </div>
+            <div class="bg-green-100 p-3 rounded-full">
+                <i class="fas fa-cubes text-green-600 text-xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Inventory Value -->
+    <div class="bg-white rounded-lg shadow-md p-6 card-hover transition-all duration-300">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-gray-600">Inventory Value</p>
+                <p class="text-3xl font-bold text-purple-600">₨{{ inventory_value|floatformat:2|intcomma }}</p>
+            </div>
+            <div class="bg-purple-100 p-3 rounded-full">
+                <i class="fas fa-dollar-sign text-purple-600 text-xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Low Stock Alert -->
+    <div class="bg-white rounded-lg shadow-md p-6 card-hover transition-all duration-300">
+        <div class="flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-gray-600">Low Stock Items</p>
+                <p class="text-3xl font-bold {% if low_stock_count > 0 %}text-red-600{% else %}text-gray-400{% endif %}">{{ low_stock_count|floatformat:0 }}</p>
+            </div>
+            <div class="{% if low_stock_count > 0 %}bg-red-100{% else %}bg-gray-100{% endif %} p-3 rounded-full">
+                <i class="fas fa-exclamation-triangle {% if low_stock_count > 0 %}text-red-600{% else %}text-gray-400{% endif %} text-xl"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="mb-8">
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-xl font-semibold text-gray-800 mb-4">Quick Actions</h3>
+        <div class="flex flex-wrap gap-4">
+            <a href="{% url 'product-create' %}" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg transition-colors flex items-center">
+                <i class="fas fa-plus mr-2"></i>Add Product
+            </a>
+            <a href="{% url 'product-list' %}" class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg transition-colors flex items-center">
+                <i class="fas fa-list mr-2"></i>View All Products
+            </a>
+            <a href="/admin/inventory/category/" class="bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-lg transition-colors flex items-center">
+                <i class="fas fa-tags mr-2"></i>Manage Categories
+            </a>
+            <a href="{% url 'sales-list' %}" class="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-3 rounded-lg transition-colors flex items-center">
+                <i class="fas fa-receipt mr-2"></i>Previous Sales
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Content Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <!-- Low Stock Items -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-xl font-semibold text-gray-800">Low Stock Alert</h3>
+            {% if low_stock_count > 0 %}
+                <span class="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-medium">
+                    {{ low_stock_count }} item{{ low_stock_count|pluralize }}
+                </span>
+            {% endif %}
+        </div>
+        
+        {% if low_stock_items %}
+            <div class="space-y-3">
+                {% for item in low_stock_items %}
+                    <div class="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-200">
+                        <div>
+                            <p class="font-medium text-gray-800">{{ item.name }}</p>
+                            <p class="text-sm text-gray-600">SKU: {{ item.sku }} | Category: {{ item.category.name }}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-lg font-bold text-red-600">{{ item.stock }}</p>
+                            <p class="text-xs text-gray-500">Threshold: {{ item.reorder_threshold }}</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            {% if low_stock_count > 10 %}
+                <div class="mt-4 text-center">
+                    <a href="{% url 'product-list' %}?low_stock=1" class="text-blue-600 hover:text-blue-800 font-medium">
+                        View all {{ low_stock_count }} low stock items →
+                    </a>
+                </div>
+            {% endif %}
+        {% else %}
+            <div class="text-center py-8">
+                <i class="fas fa-check-circle text-green-500 text-4xl mb-3"></i>
+                <p class="text-gray-600">All products are well stocked!</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Previous Sales (Recent) -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-xl font-semibold text-gray-800">Previous Sales</h3>
+            <a href="{% url 'sales-list' %}" class="text-blue-600 hover:text-blue-800 font-medium">View all →</a>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <div class="bg-gray-50 p-4 rounded-lg">
+                <p class="text-sm text-gray-600">Total Sales</p>
+                <p class="text-2xl font-bold text-blue-600">{{ total_sales_count|default:0 }}</p>
+            </div>
+            <div class="bg-gray-50 p-4 rounded-lg">
+                <p class="text-sm text-gray-600">Total Revenue</p>
+                <p class="text-2xl font-bold text-green-600">₨{{ total_sales_amount|floatformat:2 }}</p>
+            </div>
+            <div class="bg-gray-50 p-4 rounded-lg">
+                <p class="text-sm text-gray-600">Recent Items</p>
+                <p class="text-2xl font-bold text-purple-600">{{ recent_sales|length }}</p>
+            </div>
+        </div>
+
+        {% if recent_sales %}
+            <div class="space-y-3">
+                {% for s in recent_sales %}
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div>
+                            <p class="font-medium text-gray-800">{{ s.product.name }}</p>
+                            <p class="text-sm text-gray-600">Qty: {{ s.quantity }} · {{ s.created_at|date:"M d, Y H:i" }}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-semibold text-gray-800">₨{{ s.total_amount|floatformat:2 }}</p>
+                            <p class="text-sm text-gray-500">Unit: ₨{{ s.unit_price|floatformat:2 }}</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-8">
+                <i class="fas fa-receipt text-gray-400 text-4xl mb-3"></i>
+                <p class="text-gray-600">No sales recorded yet</p>
+                <a href="{% url 'sell' %}" class="text-blue-600 hover:text-blue-800 font-medium">Record your first sale →</a>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Recent Items -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h3 class="text-xl font-semibold text-gray-800 mb-4">Recently Added Products</h3>
+        
+        {% if recent_items %}
+            <div class="space-y-3">
+                {% for item in recent_items %}
+                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div>
+                            <p class="font-medium text-gray-800">{{ item.name }}</p>
+                            <p class="text-sm text-gray-600">{{ item.category.name }} | {{ item.created_at|date:"M d, Y" }}</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-semibold text-gray-800">₨{{ item.price|floatformat:2 }}</p>
+                            <p class="text-sm text-gray-500">Stock: {{ item.stock }}</p>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="text-center py-8">
+                <i class="fas fa-box-open text-gray-400 text-4xl mb-3"></i>
+                <p class="text-gray-600">No products added yet</p>
+                <a href="{% url 'product-create' %}" class="text-blue-600 hover:text-blue-800 font-medium">
+                    Add your first product →
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Previous Sales Summary and Stock Status -->
+<div class="mt-8 bg-white rounded-lg shadow-md p-6">
+    <div class="flex items-center justify-between mb-4">
+        <h3 class="text-xl font-semibold text-gray-800">Inventory Overview</h3>
+        <a href="{% url 'sales-list' %}" class="text-blue-600 hover:text-blue-800 font-medium">View Previous Sales →</a>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="text-center">
+            <div class="text-3xl font-bold text-green-600 mb-2">
+                {{ total_products|add:"-"|add:low_stock_count }}
+            </div>
+            <p class="text-gray-600">Well Stocked</p>
+        </div>
+        <div class="text-center">
+            <div class="text-3xl font-bold text-red-600 mb-2">{{ low_stock_count }}</div>
+            <p class="text-gray-600">Low Stock</p>
+        </div>
+        <div class="text-center">
+            <div class="text-3xl font-bold text-blue-600 mb-2">{{ total_products }}</div>
+            <p class="text-gray-600">Total Products</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

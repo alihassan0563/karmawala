@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block title %}Previous Sales - KarmaWala{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h2 class="text-3xl font-bold text-gray-800">Previous Sales</h2>
+    <p class="text-gray-600">Recent sales with totals</p>
+    <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-white rounded-lg shadow p-4">
+            <p class="text-sm text-gray-600">Total Sales Count</p>
+            <p class="text-2xl font-bold text-blue-600">{{ page_obj.paginator.count }}</p>
+        </div>
+        <div class="bg-white rounded-lg shadow p-4">
+            <p class="text-sm text-gray-600">This Page Total Amount</p>
+            <p class="text-2xl font-bold text-green-600">₨{{ page_total_amount|floatformat:2 }}</p>
+        </div>
+        <div class="bg-white rounded-lg shadow p-4">
+            <p class="text-sm text-gray-600">Items Sold (this page)</p>
+            <p class="text-2xl font-bold text-purple-600">{{ page_items_sold }}</p>
+        </div>
+    </div>
+</div>
+
+<div class="bg-white rounded-lg shadow-md overflow-hidden">
+    <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+            <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
+                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Qty</th>
+                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Unit Price</th>
+                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">By</th>
+                <th class="px-6 py-3"></th>
+            </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+            {% for s in sales %}
+            <tr class="hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ s.created_at|date:"M d, Y H:i" }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ s.product.name }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-right">{{ s.quantity }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 text-right">₨{{ s.unit_price|floatformat:2 }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold text-right">₨{{ s.total_amount|floatformat:2 }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ s.created_by|default:"-" }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-right">
+                    <a href="{% url 'sale-delete' s.pk %}"
+                       class="text-red-600 hover:text-red-800"
+                       title="Delete"
+                    >
+                        <i class="fas fa-trash"></i>
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="px-6 py-8 text-center text-gray-500">No sales recorded yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if is_paginated %}
+    <div class="px-6 py-4 bg-gray-50 flex justify-between items-center">
+        <div class="text-sm text-gray-600">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+        </div>
+        <div class="space-x-2">
+            {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-1 bg-white border rounded hover:bg-gray-100">Previous</a>
+            {% endif %}
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-1 bg-white border rounded hover:bg-gray-100">Next</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+

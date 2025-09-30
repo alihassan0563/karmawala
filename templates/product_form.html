@@ -1,0 +1,320 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if form.instance.pk %}Edit Product{% else %}Add Product{% endif %} - KarmaWala{% endblock %}
+
+{% block content %}
+<div class="mb-8">
+    <div class="flex items-center space-x-4 mb-4">
+        <a href="{% url 'product-list' %}" class="text-blue-600 hover:text-blue-800">
+            <i class="fas fa-arrow-left mr-2"></i>Back to Products
+        </a>
+    </div>
+    <h2 class="text-3xl font-bold text-gray-800 mb-2">
+        {% if form.instance.pk %}Edit Product{% else %}Add New Product{% endif %}
+    </h2>
+    <p class="text-gray-600">
+        {% if form.instance.pk %}Update product information{% else %}Add a new product to your inventory{% endif %}
+    </p>
+</div>
+
+<div class="bg-white rounded-lg shadow-md p-6">
+    <form method="post" class="space-y-6">
+        {% csrf_token %}
+        
+        <!-- Basic Information -->
+        <div class="border-b border-gray-200 pb-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Basic Information</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="{{ form.name.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Product Name *
+                    </label>
+                    {{ form.name }}
+                    {% if form.name.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {{ form.name.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    <label for="{{ form.sku.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        SKU *
+                    </label>
+                    {{ form.sku }}
+                    {% if form.sku.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {{ form.sku.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    <label for="{{ form.category.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Category *
+                    </label>
+                    <div class="flex space-x-2">
+                        <select name="{{ form.category.name }}" id="{{ form.category.id_for_label }}" 
+                                class="flex-1 py-2 px-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">Select a category</option>
+                            {% for choice in form.category.field.queryset %}
+                                <option value="{{ choice.pk }}" {% if choice.pk == form.category.value %}selected{% endif %}>
+                                    {{ choice.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                        <button type="button" onclick="openCategoryModal()" 
+                                class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center">
+                            <i class="fas fa-plus mr-1"></i>New
+                        </button>
+                    </div>
+                    {% if form.category.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {{ form.category.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    <label for="{{ form.is_active.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Status
+                    </label>
+                    <div class="flex items-center">
+                        {{ form.is_active }}
+                        <label for="{{ form.is_active.id_for_label }}" class="ml-2 text-sm text-gray-600">
+                            Active Product
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Product Details -->
+        <div class="border-b border-gray-200 pb-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Product Details</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="{{ form.size.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Size
+                    </label>
+                    {{ form.size }}
+                    {% if form.size.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {{ form.size.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    <label for="{{ form.color.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Color
+                    </label>
+                    {{ form.color }}
+                    {% if form.color.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {{ form.color.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Pricing & Inventory -->
+        <div class="border-b border-gray-200 pb-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Pricing & Inventory</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label for="{{ form.price.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Selling Price (₨) *
+                    </label>
+                    {{ form.price }}
+                    {% if form.price.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {{ form.price.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    <label for="{{ form.cost.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Cost Price (₨)
+                    </label>
+                    {{ form.cost }}
+                    {% if form.cost.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {{ form.cost.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    <label for="{{ form.stock.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Current Stock *
+                    </label>
+                    {{ form.stock }}
+                    {% if form.stock.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {{ form.stock.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    <label for="{{ form.reorder_threshold.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">
+                        Reorder Threshold
+                    </label>
+                    {{ form.reorder_threshold }}
+                    <p class="mt-1 text-sm text-gray-500">Alert when stock reaches this level</p>
+                    {% if form.reorder_threshold.errors %}
+                        <div class="mt-1 text-sm text-red-600">
+                            {{ form.reorder_threshold.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Profit Calculation (if editing) -->
+        {% if form.instance.pk and form.instance.cost %}
+            <div class="bg-gray-50 rounded-lg p-4">
+                <h4 class="text-md font-semibold text-gray-800 mb-2">Profit Analysis</h4>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                    <div>
+                        <span class="text-gray-600">Profit per unit:</span>
+                        <span class="font-semibold text-green-600 ml-2">
+                            ₨{{ form.instance.price|floatformat:2|add:"-"|add:form.instance.cost|floatformat:2 }}
+                        </span>
+                    </div>
+                    <div>
+                        <span class="text-gray-600">Profit margin:</span>
+                        <span class="font-semibold text-green-600 ml-2">
+                            {% widthratio form.instance.price|add:"-"|add:form.instance.cost form.instance.price 100 %}%
+                        </span>
+                    </div>
+                    <div>
+                        <span class="text-gray-600">Total inventory value:</span>
+                        <span class="font-semibold text-blue-600 ml-2">
+                            ₨{{ form.instance.inventory_value|floatformat:2 }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+        <!-- Form Actions -->
+        <div class="flex justify-end space-x-4 pt-6">
+            <a href="{% url 'product-list' %}" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg transition-colors">
+                Cancel
+            </a>
+            <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg transition-colors flex items-center">
+                <i class="fas fa-save mr-2"></i>
+                {% if form.instance.pk %}Update Product{% else %}Add Product{% endif %}
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Category Creation Modal -->
+<div id="categoryModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-medium text-gray-900">Add New Category</h3>
+                <button onclick="closeCategoryModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="categoryForm" class="space-y-4">
+                {% csrf_token %}
+                <div>
+                    <label for="categoryName" class="block text-sm font-medium text-gray-700 mb-2">
+                        Category Name *
+                    </label>
+                    <input type="text" id="categoryName" name="name" required
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                           placeholder="Enter category name">
+                </div>
+                <div>
+                    <label for="categoryDescription" class="block text-sm font-medium text-gray-700 mb-2">
+                        Description
+                    </label>
+                    <textarea id="categoryDescription" name="description" rows="3"
+                              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              placeholder="Enter category description"></textarea>
+                </div>
+                <div class="flex justify-end space-x-3 pt-4">
+                    <button type="button" onclick="closeCategoryModal()" 
+                            class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors">
+                        Cancel
+                    </button>
+                    <button type="submit" 
+                            class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition-colors">
+                        <i class="fas fa-plus mr-2"></i>Add Category
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+function openCategoryModal() {
+    document.getElementById('categoryModal').classList.remove('hidden');
+}
+
+function closeCategoryModal() {
+    document.getElementById('categoryModal').classList.add('hidden');
+    document.getElementById('categoryForm').reset();
+}
+
+document.getElementById('categoryForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    
+    try {
+        const response = await fetch('{% url "create-category-ajax" %}', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+            },
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            // Add new category to dropdown
+            const categorySelect = document.getElementById('{{ form.category.id_for_label }}');
+            const option = new Option(data.category.name, data.category.id, true, true);
+            categorySelect.add(option);
+            
+            // Close modal and show success message
+            closeCategoryModal();
+            
+            // Show success notification
+            const notification = document.createElement('div');
+            notification.className = 'fixed top-4 right-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded z-50';
+            notification.innerHTML = `<i class="fas fa-check-circle mr-2"></i>Category "${data.category.name}" created successfully!`;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        } else {
+            alert('Error creating category: ' + (data.error || 'Unknown error'));
+        }
+    } catch (error) {
+        alert('Error creating category: ' + error.message);
+    }
+});
+
+// Close modal when clicking outside
+document.getElementById('categoryModal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeCategoryModal();
+    }
+});
+</script>
+{% endblock %}
